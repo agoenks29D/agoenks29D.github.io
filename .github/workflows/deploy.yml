@@ -3,6 +3,10 @@ name: Deploy GitHub Page
 on:
   workflow_dispatch:
 
+  repository_dispatch:
+    types:
+      - GITHUB-PAGES-UPDATED
+
 permissions:
   contents: read
   pages: write
@@ -13,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout repository public
+      # Checkout public repository
       - name: Checkout public repository
         uses: actions/checkout@v7
 
@@ -24,6 +28,7 @@ jobs:
           repository: agoenks29D/github-page
           token: ${{ secrets.PRIVATE_REPO_TOKEN }}
           path: source
+          ref: ${{ github.event.client_payload.sha || 'main' }}
 
       # Setup pnpm
       - name: Setup pnpm
