@@ -1,0 +1,74 @@
+name: Deploy GitHub Page
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout repository public
+      - name: Checkout public repository
+        uses: actions/checkout@v7
+
+      # Checkout source code from private repository
+      - name: Checkout private repository
+        uses: actions/checkout@v7
+        with:
+          repository: agoenks29D/github-page
+          token: ${{ secrets.PRIVATE_REPO_TOKEN }}
+          path: source
+
+      # Setup pnpm
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: 11
+          run_install: false
+
+      # Setup Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: source/pnpm-lock.yaml
+
+      # Install dependencies
+      - name: Install dependencies
+        working-directory: source
+        run: pnpm install --frozen-lockfile
+
+      # Build website
+      - name: Build Next.js
+        working-directory: source
+        run: pnpm build
+
+      # Setup GitHub Pages
+      - name: Setup pages
+        uses: actions/configure-pages@v5
+
+      # Upload build
+      - name: Upload pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: source/out
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
