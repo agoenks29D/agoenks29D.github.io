@@ -16,6 +16,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    env:
+      NEXT_PUBLIC_GA_ID: ${{ vars.GOOGLE_ANALYTICS_ID }}
+
     steps:
       # Checkout public repository
       - name: Checkout public repository
